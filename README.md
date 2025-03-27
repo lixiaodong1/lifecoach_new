@@ -1,105 +1,116 @@
-# Life Coach AI 网站
+# Life Coach AI
 
-## 项目概述
-本项目是一个基于火山方舟的DeepSeek R1 API的AI生活教练网站。通过与AI助手的对话，用户可以获取个人成长建议，帮助自己在各方面取得进步。
+一个基于DeepSeek R1 API开发的个人AI教练应用，提供生活、工作、学习等多方面的指导和建议。
 
 ## 功能特点
-- 与AI助手实时对话
-- 获取个人成长和生活方面的建议
-- 流式输出，实时显示AI回复
-- 响应式设计，适配不同设备
 
-## 页面结构
-1. **主页面 (index.html)**
-   - 顶部导航栏：网站标题和功能链接
-   - 中间聊天区域：显示用户与AI的对话历史
-   - 底部输入区：用户输入问题的文本框和发送按钮
-   - 右侧提示区：对话建议和使用提示
+- 个性化AI生活教练对话
+- 流式响应，实时显示AI回复
+- 简洁美观的用户界面
+- 服务器状态监控
+- 完善的错误处理机制
 
-## 技术实现
-- 前端：HTML5, CSS3, JavaScript
-- 后端：Node.js服务器处理API请求
-- API：火山方舟DeepSeek R1 API
+## 技术栈
 
-## 样式说明
-- 配色方案：使用柔和的蓝色和白色为主，营造平静专注的氛围
-- 字体：使用无衬线字体，确保良好的可读性
-- 布局：使用Flexbox和Grid实现响应式布局
+- 前端：原生JavaScript、HTML5、CSS3
+- 后端：Node.js、Express
+- API：DeepSeek R1 (通过火山方舟)
 
-## 环境变量设置
-本项目使用环境变量来存储敏感信息。请按照以下步骤设置环境变量：
+## 安装步骤
 
-1. 在项目根目录创建`.env`文件（可以复制`.env.example`文件）
-   ```
-   cp .env.example .env
-   ```
+### 前置条件
 
-2. 编辑`.env`文件，填入您的API密钥和其他配置
-   ```
-   # DeepSeek API配置
-   DEEPSEEK_API_KEY=your_api_key_here
-   DEEPSEEK_API_URL=https://ark.cn-beijing.volces.com/api/v3/chat/completions
-   
-   # 服务器配置
-   PORT=3000
-   ```
+- Node.js 14.0.0 或更高版本
+- npm 6.0.0 或更高版本
+- DeepSeek R1 API密钥 (可从[火山方舟](https://ark.cn-beijing.volces.com/)获取)
 
-3. 部署到Vercel时，在Vercel项目的设置-环境变量中添加以下配置：
-   - DEEPSEEK_API_KEY: 您的DeepSeek API密钥
-   - DEEPSEEK_API_URL: DeepSeek API的URL地址（可选）
+### 本地安装
 
-**注意：** 请确保不要将`.env`文件提交到版本控制系统中。
+1. 克隆仓库
 
-## 项目启动说明
-1. 安装依赖
-   ```
-   npm install
-   ```
+```bash
+git clone https://github.com/你的用户名/life-coach-ai.git
+cd life-coach-ai
+```
 
-2. 设置环境变量（请参考上面的"环境变量设置"部分）
+2. 安装依赖
 
-3. 启动服务器
-   ```
-   npm start
-   ```
-   或者使用开发模式（自动重启）
-   ```
-   npm run dev
-   ```
+```bash
+npm install
+```
 
-4. 打开浏览器访问
-   ```
-   http://localhost:3000
-   ```
+3. 配置环境变量
 
-## 文件结构
-- `index.html` - 主页面HTML结构
-- `styles.css` - 样式表
-- `script.js` - 前端JavaScript代码
-- `server.js` - Node.js后端服务器
-- `package.json` - 项目配置和依赖
-- `.env.example` - 环境变量示例文件
-- `.env` - 本地环境变量配置（不包含在版本控制中）
+复制环境变量示例文件并编辑
 
-## 实现步骤
-1. 创建基础HTML结构
-2. 实现页面样式和响应式设计
-3. 创建Node.js后端服务处理API请求
-4. 实现前端JavaScript与后端交互
-5. 增加流式输出功能
-6. 优化用户界面和体验
+```bash
+cp .env.example .env
+```
 
-## 未来优化方向
-- 添加用户账户系统保存对话历史
-- 增加主题切换功能
-- 支持语音输入和输出
-- 添加更多个性化设置
+编辑.env文件，添加你的API密钥：
+
+```
+DEEPSEEK_API_KEY=你的API密钥
+DEEPSEEK_API_URL=https://ark.cn-beijing.volces.com/api/v3/chat/completions
+PORT=3000
+```
+
+4. 启动应用
+
+```bash
+npm start
+```
+
+应用将在 http://localhost:3000 运行
+
+### 开发模式
+
+使用nodemon自动重启服务器：
+
+```bash
+npm run dev
+```
 
 ## 部署指南
-### 部署到Vercel
-1. 在Vercel中创建新项目并关联到您的代码仓库
-2. 在项目设置-环境变量中添加以下配置：
-   - DEEPSEEK_API_KEY: 您的DeepSeek API密钥
-   - DEEPSEEK_API_URL: DeepSeek API的URL地址（可选）
-3. 部署项目
-4. 访问Vercel分配的域名查看您的应用 
+
+### Vercel部署
+
+1. Fork或克隆此仓库到你的GitHub账户
+2. 在Vercel上创建新项目并导入你的仓库
+3. 在环境变量设置中添加`DEEPSEEK_API_KEY`和`DEEPSEEK_API_URL`
+4. 部署应用
+
+## 常见问题
+
+### API没有正确配置
+
+如果遇到"API未正确配置"的错误:
+1. 检查你的`.env`文件中是否正确设置了`DEEPSEEK_API_KEY`
+2. 确认API密钥没有过期或被禁用
+3. 验证`DEEPSEEK_API_URL`是否正确
+
+### 部署后无法连接
+
+如果在Vercel等平台部署后无法连接:
+1. 检查环境变量是否正确设置
+2. 查看平台的日志输出，寻找可能的错误信息
+3. 确认你的API密钥有足够的权限和配额
+
+### 流式响应中断
+
+如果流式响应经常中断:
+1. 检查网络连接是否稳定
+2. 服务器和API之间可能存在超时问题，可以尝试使用非流式响应
+3. 检查是否达到API调用频率限制
+
+## 贡献指南
+
+欢迎提交问题和拉取请求。对于重大更改，请先开issue讨论您想要更改的内容。
+
+## 许可证
+
+[ISC](LICENSE)
+
+## 联系方式
+
+如有任何问题或建议，请通过GitHub Issues联系。 

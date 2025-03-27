@@ -18,10 +18,22 @@ const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.DEEPSEEK_API_KEY;
 const API_URL = process.env.DEEPSEEK_API_URL || 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
 
+// 增强日志记录，用于调试
+console.log('环境检查:');
+console.log(`- NODE_ENV: ${process.env.NODE_ENV}`);
+console.log(`- PORT配置: ${PORT}`);
+console.log(`- API_URL配置: ${API_URL ? '已配置' : '未配置'}`);
+console.log(`- API_KEY配置: ${API_KEY ? '已配置 (已隐藏具体值)' : '未配置'}`);
+
 // 检查是否设置了必要的环境变量
 if (!API_KEY) {
     console.error('错误: 未设置DEEPSEEK_API_KEY环境变量');
-    process.exit(1);
+    // 在生产环境中，我们不希望因为缺少API密钥而导致整个应用崩溃
+    if (process.env.NODE_ENV === 'production') {
+        console.error('在生产环境中，应用将继续运行，但API功能将不可用');
+    } else {
+        console.error('请创建一个.env文件并设置DEEPSEEK_API_KEY');
+    }
 }
 
 // 中间件设置
@@ -29,168 +41,233 @@ app.use(cors()); // 启用CORS
 app.use(bodyParser.json()); // 解析JSON请求
 app.use(express.static(__dirname)); // 静态文件服务
 
-// 设置请求超时时间为60秒
+// 记录请求日志的中间件
+app.use((req, res, next) => {
+    const startTime = Date.now();
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - 开始处理`);
+    
+    // 添加响应完成后的日志记录
+    res.on('finish', () => {
+        const duration = Date.now() - startTime;
+        console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - 完成处理 [${res.statusCode}] ${duration}ms`);
+    });
+    next();
+});
+
+// 设置请求超时时间为45秒（Vercel的无服务器函数超时时间为60秒）
 const axiosInstance = axios.create({
-    timeout: 60000
+    timeout: 45000
 });
 
 // 服务器状态端点
 app.get('/api/status', (req, res) => {
+    // 检查环境变量是否有改变（例如在Vercel重新部署后）
+    const currentApiKey = process.env.DEEPSEEK_API_KEY;
+    
     res.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
         serverInfo: {
             port: req.socket.localPort,
-            version: '1.0.0',
-            apiConfigured: !!API_KEY
+            version: '1.0.1',
+            apiConfigured: !!currentApiKey,
+            environment: process.env.NODE_ENV || 'development',
+            platform: process.env.VERCEL ? 'vercel' : 'other'
         }
     });
 });
 
-// 标准API请求处理（非流式）
-app.post('/api/chat', async (req, res) => {
+// 统一错误处理中间件
+const errorHandler = (err, req, res, next) => {
+    const errorId = Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
+    
+    console.error(`[ERROR ${errorId}] ${err.message}`);
+    if (err.stack) {
+        console.error(`[STACK ${errorId}]`, err.stack);
+    }
+    
+    // 错误响应
+    res.status(err.statusCode || 500).json({
+        error: err.code || 'SERVER_ERROR',
+        message: process.env.NODE_ENV === 'production' 
+            ? '服务器处理请求时遇到问题' 
+            : err.message,
+        errorId: errorId,
+        details: process.env.NODE_ENV === 'production' ? undefined : err.details
+    });
+};
+
+// 处理所有API请求的统一端点，默认使用流式响应
+app.post('/api/chat', async (req, res, next) => {
+    if (!API_KEY) {
+        return res.status(503).json({ 
+            error: 'API_NOT_CONFIGURED',
+            message: '服务器未正确配置API密钥，无法处理请求'
+        });
+    }
+
+    // 获取请求的stream参数，默认为true使用流式传输
+    const useStream = req.query.stream !== 'false';
+    
     try {
         const { messages } = req.body;
         
         if (!messages || !Array.isArray(messages)) {
-            return res.status(400).json({ error: '无效的请求格式' });
+            return res.status(400).json({ 
+                error: 'INVALID_REQUEST_FORMAT',
+                message: '请求消息格式不正确，必须提供messages数组' 
+            });
         }
+
+        console.log(`处理聊天请求: 消息数量=${messages.length}, 使用流式=${useStream}`);
         
         // 创建API请求体
         const requestBody = {
             model: 'deepseek-r1-250120',
             messages: messages,
             temperature: 0.6,
-            stream: false // 非流式传输
+            stream: useStream
         };
         
-        // 发送请求到火山方舟API
-        const response = await axiosInstance.post(API_URL, requestBody, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${API_KEY}`
+        // 如果不使用流式传输，直接返回完整响应
+        if (!useStream) {
+            try {
+                const response = await axiosInstance.post(API_URL, requestBody, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_KEY}`
+                    }
+                });
+                
+                if (response.data) {
+                    return res.json(response.data);
+                } else {
+                    throw new Error('无效的API响应');
+                }
+            } catch (error) {
+                handleApiError(error, res);
+                return;
             }
-        });
-        
-        // 检查响应是否有效
-        if (response.data && response.data.choices && response.data.choices.length > 0) {
-            const aiResponse = response.data.choices[0].message.content;
-            res.json({ response: aiResponse });
-        } else {
-            throw new Error('无效的API响应');
         }
-    } catch (error) {
-        console.error('API请求错误:', error.message);
         
-        // 返回友好的错误信息
-        res.status(500).json({
-            error: '服务器错误',
-            message: error.message
-        });
-    }
-});
-
-// 流式API请求处理
-app.post('/api/chat/stream', async (req, res) => {
-    try {
-        const { messages } = req.body;
-        
-        if (!messages || !Array.isArray(messages)) {
-            return res.status(400).json({ error: '无效的请求格式' });
-        }
+        // 否则使用流式传输
+        console.log(`发送流式请求到API: ${API_URL.replace(/\/[^\/]+$/, '/***')}`);
         
         // 设置响应头，支持流式传输
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
         
-        // 创建API请求体
-        const requestBody = {
-            model: 'deepseek-r1-250120',
-            messages: messages,
-            temperature: 0.6,
-            stream: true // 启用流式传输
-        };
-        
-        // 流式传输处理
-        const response = await axiosInstance.post(API_URL, requestBody, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${API_KEY}`
-            },
-            responseType: 'stream'
-        });
-        
-        // 处理流式响应
-        response.data.on('data', (chunk) => {
-            try {
-                const dataString = chunk.toString('utf8');
-                
-                // 处理SSE数据格式
-                const lines = dataString.split('\n').filter(line => line.trim() !== '');
-                
-                for (const line of lines) {
-                    if (line.startsWith('data:')) {
-                        const jsonData = line.slice(5).trim();
-                        
-                        // 跳过流结束标记
-                        if (jsonData === '[DONE]') {
-                            continue;
-                        }
-                        
-                        try {
-                            const data = JSON.parse(jsonData);
-                            
-                            if (data.choices && data.choices.length > 0) {
-                                const delta = data.choices[0].delta;
-                                
-                                if (delta && delta.content) {
-                                    // 发送内容增量给客户端
-                                    res.write(`data: ${JSON.stringify({ content: delta.content })}\n\n`);
-                                }
-                            }
-                        } catch (e) {
-                            console.error('解析JSON出错:', e);
-                        }
-                    }
+        try {
+            // 流式传输处理
+            const response = await axiosInstance.post(API_URL, requestBody, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${API_KEY}`
+                },
+                responseType: 'stream'
+            });
+            
+            console.log('流式连接建立成功');
+            
+            // 处理流式响应
+            response.data.on('data', (chunk) => {
+                try {
+                    const dataString = chunk.toString('utf8');
+                    
+                    // 直接将API返回的SSE格式数据转发给客户端
+                    res.write(dataString);
+                } catch (e) {
+                    console.error('处理数据块出错:', e);
                 }
-            } catch (e) {
-                console.error('处理数据块出错:', e);
-            }
-        });
-        
-        // 处理流结束或错误
-        response.data.on('end', () => {
+            });
+            
+            // 处理流结束或错误
+            response.data.on('end', () => {
+                console.log('流式响应完成');
+                res.write('data: [DONE]\n\n');
+                res.end();
+            });
+            
+            response.data.on('error', (err) => {
+                console.error('流错误:', err);
+                // 尝试发送错误信息给客户端
+                res.write(`data: ${JSON.stringify({ error: true, message: err.message })}\n\n`);
+                res.end();
+            });
+            
+            // 处理客户端断开连接
+            req.on('close', () => {
+                console.log('客户端关闭连接');
+                response.data.destroy();
+            });
+        } catch (error) {
+            // 如果在建立流式连接时出错，尝试以SSE格式发送错误
+            console.error('建立流式连接出错:', error.message);
+            res.write(`data: ${JSON.stringify({ error: true, message: "无法连接到API服务器" })}\n\n`);
             res.write('data: [DONE]\n\n');
             res.end();
-        });
-        
-        response.data.on('error', (err) => {
-            console.error('流错误:', err);
-            res.end();
-        });
-        
-        // 处理客户端断开连接
-        req.on('close', () => {
-            response.data.destroy();
-        });
-    } catch (error) {
-        console.error('流式API请求错误:', error.message);
-        
-        // 尝试发送错误响应
-        try {
-            res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
-            res.end();
-        } catch (e) {
-            console.error('无法发送错误响应:', e);
         }
+    } catch (error) {
+        // 处理其他异常
+        next(error);
     }
 });
 
-// 主页路由
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
+// 处理API错误的辅助函数
+function handleApiError(error, res) {
+    console.error('API请求错误:', error.message);
+    
+    // 处理特定的错误状态
+    if (error.response) {
+        console.error(`API错误响应: 状态=${error.response.status}, 数据=`, error.response.data);
+        
+        // 根据状态码返回相应的错误
+        switch (error.response.status) {
+            case 401:
+            case 403:
+                return res.status(error.response.status).json({
+                    error: 'API_AUTH_ERROR',
+                    message: 'API授权失败，请检查API密钥是否正确'
+                });
+            case 429:
+                return res.status(429).json({
+                    error: 'API_RATE_LIMIT',
+                    message: 'API请求频率过高，请稍后再试'
+                });
+            default:
+                return res.status(error.response.status || 502).json({
+                    error: 'EXTERNAL_API_ERROR',
+                    status: error.response.status,
+                    message: `API返回错误: ${error.response.status}`,
+                    details: process.env.NODE_ENV === 'production' ? undefined : error.response.data
+                });
+        }
+    }
+    
+    if (error.code === 'ECONNABORTED') {
+        return res.status(504).json({
+            error: 'API_TIMEOUT',
+            message: 'API请求超时，服务器可能负载过高，请稍后再试'
+        });
+    }
+    
+    if (error.code === 'ENOTFOUND' || error.code === 'EAI_AGAIN') {
+        return res.status(502).json({
+            error: 'API_CONNECTION_FAILED',
+            message: '无法连接到API服务器，请检查网络连接和API URL'
+        });
+    }
+    
+    // 其他未知错误
+    return res.status(500).json({
+        error: 'API_REQUEST_FAILED',
+        message: error.message
+    });
+}
+
+// 注册错误处理中间件
+app.use(errorHandler);
 
 // 检查端口是否可用
 function isPortAvailable(port) {
@@ -199,16 +276,13 @@ function isPortAvailable(port) {
         
         server.once('error', (err) => {
             if (err.code === 'EADDRINUSE') {
-                // 端口被占用
                 resolve(false);
             } else {
-                // 其他错误
-                resolve(false);
+                resolve(true);
             }
         });
         
         server.once('listening', () => {
-            // 关闭服务器，端口可用
             server.close();
             resolve(true);
         });
@@ -217,31 +291,66 @@ function isPortAvailable(port) {
     });
 }
 
-// 寻找可用端口
+// 查找可用端口
 async function findAvailablePort(startPort) {
     let port = startPort;
+    
     while (!(await isPortAvailable(port))) {
-        console.log(`端口 ${port} 已被占用，尝试下一个端口...`);
         port++;
-        if (port > startPort + 100) {
+        
+        if (port - startPort > 10) {
             throw new Error('无法找到可用端口');
         }
     }
+    
     return port;
 }
 
-// 启动服务器（使用可用端口）
+// 启动服务器
 async function startServer() {
     try {
-        const availablePort = await findAvailablePort(PORT);
-        app.listen(availablePort, () => {
-            console.log(`服务器运行在 http://localhost:${availablePort}`);
+        let actualPort = parseInt(PORT, 10);
+        
+        // 如果指定的端口不可用，查找一个可用端口
+        if (!(await isPortAvailable(actualPort))) {
+            const newPort = await findAvailablePort(actualPort + 1);
+            console.warn(`警告: 端口 ${actualPort} 已被占用，使用端口 ${newPort} 代替`);
+            actualPort = newPort;
+        }
+        
+        const server = http.createServer(app);
+        
+        server.listen(actualPort, () => {
+            console.log(`服务器运行在 http://localhost:${actualPort}`);
             console.log(`API配置状态: ${API_KEY ? '已配置' : '未配置'}`);
         });
-    } catch (error) {
-        console.error('启动服务器失败:', error.message);
+        
+        // 处理服务器错误
+        server.on('error', (err) => {
+            console.error('服务器错误:', err);
+            if (err.code === 'EADDRINUSE') {
+                console.error(`错误: 端口 ${actualPort} 已被占用`);
+            }
+        });
+        
+        // 优雅关闭
+        process.on('SIGTERM', () => {
+            console.log('收到 SIGTERM 信号，正在关闭服务器...');
+            server.close(() => {
+                console.log('服务器已关闭');
+                process.exit(0);
+            });
+        });
+    } catch (err) {
+        console.error('启动服务器失败:', err);
         process.exit(1);
     }
 }
 
-startServer(); 
+// 启动服务器
+if (require.main === module) {
+    startServer();
+}
+
+// 导出app实例，用于测试或外部导入
+module.exports = { app }; 

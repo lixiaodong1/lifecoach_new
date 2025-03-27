@@ -32,10 +32,13 @@
             <div class="chat-container">
                 <div class="chat-header">
                     <div class="status">
-                        <span class="status-indicator online"></span>
-                        <span class="status-text">在线</span>
+                        <span class="status-indicator checking"></span>
+                        <span class="status-text">检查连接中...</span>
                     </div>
                     <div class="actions">
+                        <button id="refreshConnection" class="action-button" title="刷新连接">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
                         <button id="clearChat" class="action-button" title="清空聊天记录">
                             <i class="fas fa-trash-alt"></i>
                         </button>

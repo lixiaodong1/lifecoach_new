@@ -21,9 +21,89 @@
     --shadow-color: rgba(0, 0, 0, 0.08);
     --success-color: #27ae60;
     --error-color: #e74c3c;
+    --warning-color: #f39c12;
     --bg-color: #f9fafb;
     --card-bg: #ffffff;
     --transition-speed: 0.3s;
+}
+
+/* 添加状态指示器颜色 */
+.status-indicator.online {
+    background-color: var(--success-color);
+    box-shadow: 0 0 5px var(--success-color);
+    animation: pulse 2s infinite;
+}
+
+.status-indicator.offline {
+    background-color: var(--error-color);
+    box-shadow: 0 0 5px var(--error-color);
+}
+
+.status-indicator.error {
+    background-color: var(--error-color);
+    box-shadow: 0 0 5px var(--error-color);
+    animation: flash 1s infinite;
+}
+
+.status-indicator.warning {
+    background-color: var(--warning-color);
+    box-shadow: 0 0 5px var(--warning-color);
+    animation: pulse 2s infinite;
+}
+
+.status-indicator.checking {
+    background-color: var(--text-light);
+    box-shadow: 0 0 5px var(--text-light);
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(39, 174, 96, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(39, 174, 96, 0);
+    }
+}
+
+@keyframes flash {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* 系统消息样式 */
+.system-message-chat {
+    margin: 15px auto;
+    max-width: 85%;
+    justify-content: center;
+}
+
+.system-content {
+    background-color: rgba(243, 156, 18, 0.1);
+    border-left: 3px solid var(--warning-color);
+    padding: 12px 20px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.system-content i {
+    margin-right: 10px;
+    color: var(--warning-color);
+    font-size: 16px;
+}
+
+.system-content span {
+    color: var(--text-color);
+    font-size: 14px;
 }
 
 /* 基础样式 */
@@ -184,24 +264,6 @@ body {
     height: 10px;
     border-radius: 50%;
     margin-right: 8px;
-}
-
-.status-indicator.online {
-    background-color: var(--success-color);
-    box-shadow: 0 0 5px var(--success-color);
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.4);
-    }
-    70% {
-        box-shadow: 0 0 0 6px rgba(39, 174, 96, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(39, 174, 96, 0);
-    }
 }
 
 .status-text {
