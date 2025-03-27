@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Life Coach AI - 您的个人成长助手，通过AI对话获取成长建议">
+    <meta name="theme-color" content="#3a7bd5">
+    <title>Life Coach AI - 您的个人成长助手</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <!-- 顶部导航栏 -->
+        <header class="header">
+            <div class="logo">
+                <h1><i class="fas fa-brain"></i> Life Coach AI</h1>
+                <p>您的个人成长助手</p>
+            </div>
+            <nav class="nav">
+                <ul>
+                    <li><a href="#" class="active">首页</a></li>
+                    <li><a href="#about" id="aboutLink">关于</a></li>
+                    <li><a href="#guide" id="guideLink">使用指南</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <!-- 聊天区域 -->
+            <div class="chat-container">
+                <div class="chat-header">
+                    <div class="status">
+                        <span class="status-indicator online"></span>
+                        <span class="status-text">在线</span>
+                    </div>
+                    <div class="actions">
+                        <button id="clearChat" class="action-button" title="清空聊天记录">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <!-- 初始欢迎消息 -->
+                    <div class="message ai-message">
+                        <div class="avatar">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="message-content">
+                            <p>你好！我是你的Life Coach AI助手。我可以帮助你解决生活中的问题，提供个人成长建议。有什么我可以帮助你的吗？</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 用户输入区域 -->
+                <div class="user-input">
+                    <textarea id="userInput" placeholder="输入您的问题..." rows="1" aria-label="输入您的问题"></textarea>
+                    <button id="sendButton" class="send-button" aria-label="发送消息">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 右侧提示区域 -->
+            <div class="suggestion-panel">
+                <div class="suggestion-header">
+                    <h3>对话建议</h3>
+                </div>
+                <div class="suggestions">
+                    <div class="suggestion-item" tabindex="0">
+                        <p>"你能帮我制定一个运动计划吗？"</p>
+                    </div>
+                    <div class="suggestion-item" tabindex="0">
+                        <p>"我想改善我的睡眠质量，有什么建议？"</p>
+                    </div>
+                    <div class="suggestion-item" tabindex="0">
+                        <p>"如何提高我的工作效率？"</p>
+                    </div>
+                    <div class="suggestion-item" tabindex="0">
+                        <p>"我感到压力很大，有什么减压方法？"</p>
+                    </div>
+                    <div class="suggestion-item" tabindex="0">
+                        <p>"如何培养持续学习的习惯？"</p>
+                    </div>
+                </div>
+                <div class="tips">
+                    <h3>使用提示</h3>
+                    <ul>
+                        <li>清晰描述你的情况和问题</li>
+                        <li>具体说明你的目标</li>
+                        <li>尽量提供相关背景信息</li>
+                        <li>随时向AI提问以获取更详细的建议</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+
+        <!-- 弹出模态框：关于 -->
+        <div id="aboutModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2>关于 Life Coach AI</h2>
+                <p>Life Coach AI 是一个基于火山方舟的DeepSeek R1 API的人工智能助手，设计用于帮助用户在个人成长和生活各方面获取建议和指导。</p>
+                <p>通过自然语言对话，您可以向AI提出关于工作、学习、健康、人际关系等方面的问题，AI将为您提供个性化的建议和解决方案。</p>
+                <p>请注意：虽然我们的AI助手会尽力提供有用的建议，但对于严重的健康问题或紧急情况，请务必咨询专业人士。</p>
+            </div>
+        </div>
+
+        <!-- 弹出模态框：使用指南 -->
+        <div id="guideModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2>使用指南</h2>
+                <div class="guide-section">
+                    <h3>如何开始对话</h3>
+                    <p>在文本框中输入您的问题或从右侧的建议中选择一个话题，然后点击发送按钮或按回车键发送消息。</p>
+                </div>
+                <div class="guide-section">
+                    <h3>获得最佳回答的技巧</h3>
+                    <ul>
+                        <li>尽量具体：提供详细的背景信息，帮助AI更好地理解您的情况</li>
+                        <li>一次一个问题：避免在一条消息中提出多个不相关的问题</li>
+                        <li>逐步深入：从基础问题开始，然后根据AI的回答提出更深入的问题</li>
+                        <li>指明目标：告诉AI您希望达到什么样的目标或结果</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>&copy; 2023 Life Coach AI. 基于DeepSeek R1 API开发</p>
+            <div class="footer-links">
+                <a href="#privacy">隐私政策</a>
+                <a href="#terms">使用条款</a>
+                <a href="#feedback">反馈</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 加载指示器 -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
