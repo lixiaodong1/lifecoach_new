@@ -1,3 +1,6 @@
+// 加载环境变量
+require('dotenv').config();
+
 // 引入所需模块
 const express = require('express');
 const cors = require('cors');
@@ -11,9 +14,15 @@ const net = require('net');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// API密钥
-const API_KEY = '9553bd77-ac9a-4877-836e-6c1bce1ae8ff';
-const API_URL = 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
+// 从环境变量中获取API密钥和URL
+const API_KEY = process.env.DEEPSEEK_API_KEY;
+const API_URL = process.env.DEEPSEEK_API_URL || 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
+
+// 检查是否设置了必要的环境变量
+if (!API_KEY) {
+    console.error('错误: 未设置DEEPSEEK_API_KEY环境变量');
+    process.exit(1);
+}
 
 // 中间件设置
 app.use(cors()); // 启用CORS
@@ -32,7 +41,8 @@ app.get('/api/status', (req, res) => {
         timestamp: new Date().toISOString(),
         serverInfo: {
             port: req.socket.localPort,
-            version: '1.0.0'
+            version: '1.0.0',
+            apiConfigured: !!API_KEY
         }
     });
 });
@@ -226,6 +236,7 @@ async function startServer() {
         const availablePort = await findAvailablePort(PORT);
         app.listen(availablePort, () => {
             console.log(`服务器运行在 http://localhost:${availablePort}`);
+            console.log(`API配置状态: ${API_KEY ? '已配置' : '未配置'}`);
         });
     } catch (error) {
         console.error('启动服务器失败:', error.message);
