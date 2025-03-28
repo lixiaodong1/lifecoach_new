@@ -1,5 +1,5 @@
 // 加载环境变量
-require('env').config();
+require('dotenv').config();
 
 // 引入所需模块
 const express = require('express');
