@@ -17,19 +17,24 @@
       "headers": {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Content-Security-Policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.githubusercontent.com https://*.github.com https://fonts.gstatic.com; img-src 'self' data: blob: https://*.githubusercontent.com https://*.github.com https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://*.githubusercontent.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;"
       }
     },
     {
       "src": "/(.*)\\.(?:js|css|html)$",
       "dest": "/public/$1.$2",
       "headers": {
-        "Cache-Control": "public, max-age=0, must-revalidate"
+        "Cache-Control": "public, max-age=0, must-revalidate",
+        "Content-Security-Policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.githubusercontent.com https://*.github.com https://fonts.gstatic.com; img-src 'self' data: blob: https://*.githubusercontent.com https://*.github.com https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://*.githubusercontent.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;"
       }
     },
     {
       "src": "/(.*)",
-      "dest": "/public/$1"
+      "dest": "/public/$1",
+      "headers": {
+        "Content-Security-Policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.githubusercontent.com https://*.github.com https://fonts.gstatic.com; img-src 'self' data: blob: https://*.githubusercontent.com https://*.github.com https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://*.githubusercontent.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;"
+      }
     }
   ],
   "env": {
