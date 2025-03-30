@@ -40,11 +40,11 @@ if (!API_KEY) {
 app.use(cors()); // 启用CORS
 app.use(bodyParser.json()); // 解析JSON请求
 
-// 添加安全头
+// 添加安全头 - 更宽松的CSP配置
 app.use((req, res, next) => {
     res.setHeader(
         'Content-Security-Policy',
-        "default-src 'self' http://localhost:* https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' https: cdnjs.cloudflare.com; connect-src 'self' http://localhost:* https:;"
+        "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src * data: blob:; font-src * data:; connect-src *;"
     );
     next();
 });
