@@ -44,7 +44,7 @@ app.use(bodyParser.json()); // 解析JSON请求
 app.use((req, res, next) => {
     res.setHeader(
         'Content-Security-Policy',
-        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://www.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://ark.cn-beijing.volces.com;"
+        "default-src 'self' http://localhost:* https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' https: cdnjs.cloudflare.com; connect-src 'self' http://localhost:* https:;"
     );
     next();
 });

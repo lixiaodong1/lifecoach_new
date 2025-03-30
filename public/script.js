@@ -15,7 +15,7 @@ const statusText = document.querySelector('.status-text');
 const refreshConnectionButton = document.getElementById('refreshConnection');
 
 // 获取当前服务器URL
-const apiBaseUrl = 'http://localhost:3000'; // 修改为实际的API服务器地址
+const apiBaseUrl = window.location.origin; // 使用当前页面的域名和端口
 // 重试次数限制和时间间隔(ms)
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
