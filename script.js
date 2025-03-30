@@ -15,7 +15,7 @@ const statusText = document.querySelector('.status-text');
 const refreshConnectionButton = document.getElementById('refreshConnection');
 
 // 获取当前服务器URL
-const apiBaseUrl = window.location.origin;
+const apiBaseUrl = 'http://localhost:3000'; // 修改为实际的API服务器地址
 // 重试次数限制和时间间隔(ms)
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
@@ -124,9 +124,13 @@ async function checkServerStatus(isManualCheck = false) {
             showSystemMessage('正在检查服务器连接...');
         }
         
-        // 添加随机参数防止缓存
-        const cacheBuster = `?t=${Date.now()}`;
-        const response = await fetch(`${apiBaseUrl}/api/status${cacheBuster}`);
+        const response = await fetch(`${apiBaseUrl}/api/status`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
         
         if (response.ok) {
             const data = await response.json();
