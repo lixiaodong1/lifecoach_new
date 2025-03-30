@@ -31,9 +31,5 @@
       "src": "/(.*)",
       "dest": "/public/$1"
     }
-  ],
-  "env": {
-    "DEEPSEEK_API_KEY": "@deepseek_api_key",
-    "DEEPSEEK_API_URL": "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
-  }
+  ]
 } 
