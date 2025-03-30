@@ -39,7 +39,23 @@ if (!API_KEY) {
 // 中间件设置
 app.use(cors()); // 启用CORS
 app.use(bodyParser.json()); // 解析JSON请求
-app.use(express.static(__dirname)); // 静态文件服务
+
+// 添加安全头
+app.use((req, res, next) => {
+    res.setHeader(
+        'Content-Security-Policy',
+        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://www.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://ark.cn-beijing.volces.com;"
+    );
+    next();
+});
+
+// 静态文件服务 - 修改为使用绝对路径
+app.use(express.static(path.join(__dirname, 'public')));
+
+// 添加根路由处理
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // 记录请求日志的中间件
 app.use((req, res, next) => {
